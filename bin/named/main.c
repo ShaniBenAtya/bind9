@@ -1049,7 +1049,9 @@ setup(void) {
 	/*
 	 * Check for the number of cpu's before named_os_chroot().
 	 */
-	named_g_cpus_detected = isc_os_ncpus();
+	// SHANI: Change number of cpus
+	//named_g_cpus_detected = isc_os_ncpus();
+	named_g_cpus_detected = 1;
 
 	named_os_chroot(named_g_chrootdir);
 
