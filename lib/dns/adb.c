@@ -3271,6 +3271,8 @@ fetch:
 			   "started AAAA fetch for name %s (%p)",
 			   namebuf, adbname);
 		}
+
+		printf("END IF in FETCH !!!!!!!!!!!!!!!!!!!!!\n");
 	}
 
 	/*
@@ -4117,6 +4119,7 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 
 check_result:
 	if (result == ISC_R_SUCCESS) {
+		//printf("We are Inside check_result with ISC Success\n");
 		ev_status = DNS_EVENT_ADBMOREADDRESSES;
 		if (address_type == DNS_ADBFIND_INET) {
 			name->fetch_err = FIND_ERR_SUCCESS;
