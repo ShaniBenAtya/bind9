@@ -1958,7 +1958,7 @@ process_sendevent(resquery_t *query, isc_event_t *event) {
 		if (result != ISC_R_SUCCESS) {
 			fctx_done(fctx, result, __LINE__);
 		} else {
-			//printf("@@@@@@@@@@@@@@  Got to 1 fctx_try  @@@@@@@@@@@@@@\n");
+			// printf("@@@@@@@@@@@@@@  Got to 1 fctx_try  @@@@@@@@@@@@@@\n");
 			fctx_try(fctx, true, false);
 		}
 	}
@@ -3223,7 +3223,7 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 		if (result != ISC_R_SUCCESS) {
 			fctx_done(fctx, result, __LINE__);
 		} else {
-				//printf("@@@@@@@@@@@@@@  Got to 2 fctx_try  @@@@@@@@@@@@@@\n");
+			// printf("@@@@@@@@@@@@@@  Got to 2 fctx_try  @@@@@@@@@@@@@@\n");
 			fctx_try(fctx, true, false);
 		}
 	}
@@ -3289,7 +3289,7 @@ fctx_finddone(isc_task_t *task, isc_event_t *event) {
 	dns_adb_destroyfind(&find);
 
 	if (want_try) {
-		//printf("@@@@@@@@@@@@@@  Got to 3 fctx_try  @@@@@@@@@@@@@@\n");
+		// printf("@@@@@@@@@@@@@@  Got to 3 fctx_try  @@@@@@@@@@@@@@\n");
 		fctx_try(fctx, true, false);
 	} else if (want_done) {
 		FCTXTRACE("fetch failed in finddone(); return ISC_R_FAILURE");
@@ -3645,6 +3645,7 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 		 * We don't know any of the addresses for this
 		 * name.
 		 */
+		// printf("find->options & DNS_ADBFIND_WATNEVENT: %d\n", (find->options & DNS_ADBFIND_WANTEVENT));
 		if ((find->options & DNS_ADBFIND_WANTEVENT) != 0) {
 			/*
 			 * We're looking for them and will get an
@@ -3664,6 +3665,7 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 				*need_alternate = true;
 			}
 			if (no_addresses != NULL) {
+				printf("		no_address++ : %d\n", __LINE__);
 				(*no_addresses)++;
 			}
 		} else {
@@ -3722,6 +3724,8 @@ fctx_getaddresses(fetchctx_t *fctx, bool badcache) {
 	bool all_spilled = true;
 	unsigned int no_addresses = 0;
 	unsigned int ns_processed = 0;
+	static unsigned int no_getaddresses = 0;
+	unsigned int no_infor = 0;
 
 	FCTXTRACE5("getaddresses", "fctx->depth=", fctx->depth);
 
@@ -3730,6 +3734,7 @@ fctx_getaddresses(fetchctx_t *fctx, bool badcache) {
 	 */
 	fctx->restarts++;
 	if (fctx->restarts > 100) {
+		// printf("@#@#@#@#@#@# RESET LIMIT REACHED @#@#@#@#@#@#");
 		FCTXTRACE("too many restarts");
 		return (DNS_R_SERVFAIL);
 	}
@@ -3883,17 +3888,19 @@ normal_nses:
 
 	INSIST(ISC_LIST_EMPTY(fctx->finds));
 	INSIST(ISC_LIST_EMPTY(fctx->altfinds));
-
+		
 	for (result = dns_rdataset_first(&fctx->nameservers);
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(&fctx->nameservers))
 	{
 		bool overquota = false;
 
-		printf("number of times the for loop happend: %d\n", no_infor++);
 
 		dns_rdataset_current(&fctx->nameservers, &rdata);
-		printf("Current data in for: %s\n", rdata.data);
+		// printf("		in loop for: %s : %s\n", fctx->name.ndata, rdata.data);
+		no_infor++;
+		// printf("number of times the for loop happend: %s : %s - %d\n", fctx->name.ndata, rdata.data, no_infor++);
+		// printf("Current data in for: %s\n", rdata.data);
 		/*
 		 * Extract the name from the NS record.
 		 * 
@@ -3903,17 +3910,20 @@ normal_nses:
 			continue;
 		}
 
-		printf("Number of no addresses: %d\n", no_addresses);
+		// printf("		Number of no addresses: %s : %s - %d\n", fctx->name.ndata, rdata.data, no_addresses);
 
 		if (no_addresses > NS_FAIL_LIMIT &&
 		    dns_rdataset_count(&fctx->nameservers) > NS_RR_LIMIT)
 		{
-			printf("Got into if: %s - %d\n", __FILE__, __LINE__);
+			// printf("		Got into if: %s - %d\n", __FILE__, __LINE__);
 			stdoptions |= DNS_ADBFIND_NOFETCH;
 		}
+		// printf("		findname parameters: fctx: stdoptions: %d, overq: %d, needAlter: %d, no_address: %d\n",
+			// stdoptions, overquota, need_alternate, no_addresses);
+
 		findname(fctx, &ns.name, 0, stdoptions, 0, now, &overquota,
 			 &need_alternate, &no_addresses);
-		printf("Return from findname: %s -%d\n", __FILE__, __LINE__);
+		// printf("		Return from findname: %s -%d\n", __FILE__, __LINE__);
 		//printf("Curr *****End***** time: %ld\n", clock());
 
 		if (!overquota) {
@@ -3945,7 +3955,7 @@ normal_nses:
 				findname(fctx, &a->_u._n.name, a->_u._n.port,
 					 stdoptions, FCTX_ADDRINFO_FORWARDER,
 					 now, NULL, NULL, NULL);
-					 printf("NEED ALTERNATE : %s - %d\n", __FILE__, __LINE__);
+					//  printf("				NEED ALTERNATE : %s - %d\n", __FILE__, __LINE__);
 				continue;
 			}
 			if (isc_sockaddr_pf(&a->_u.addr) != family) {
@@ -3971,7 +3981,7 @@ normal_nses:
 			}
 		}
 
-		printf("####################$$$$$$$$$$$$$$$$$############################# END FCTX_GETADDRESSES ############################$$$$$$$$$$$$$$$$$#####################\n");
+		// printf("####################$$$$$$$$$$$$$$$$$############################# END FCTX_GETADDRESSES ############################$$$$$$$$$$$$$$$$$#####################\n");
 	}
 
 out:
@@ -4034,6 +4044,8 @@ out:
 		sort_finds(&fctx->altfinds, 0);
 		result = ISC_R_SUCCESS;
 	}
+	// printf("################################################# ENDING FCTX_GETADDRESSES #################################################\n");
+
 
 	return (result);
 }
@@ -4296,6 +4308,7 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 			      fctx->info, isc_counter_used(fctx->qc),
 			      res->maxqueries);
 		fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
+		// printf("####### FINISH FCTX_TRY - isc_counter_used #######\n");
 		return;
 	}
 
@@ -4317,12 +4330,14 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 			 */
 			FCTXTRACE("addrwait");
 			FCTX_ATTR_SET(fctx, FCTX_ATTR_ADDRWAIT);
+			// printf("####### FINISH FCTX_TRY - DNS_R_WAIT #######\n");
 			return;
 		} else if (result != ISC_R_SUCCESS) {
 			/*
 			 * Something bad happened.
 			 */
 			fctx_done(fctx, result, __LINE__);
+			// printf("####### FINISH FCTX_TRY - something bad happened #######\n");
 			return;
 		}
 
@@ -4339,6 +4354,7 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 		 */
 		if (addrinfo == NULL) {
 			fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
+			// printf("####### FINISH FCTX_TRY - addrinfo null #######\n");
 			return;
 		}
 	}
@@ -4380,6 +4396,7 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 				      validfctx ? fctx->qminfetch->private->info
 						: "<invalid>");
 			fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
+			// printf("####### FINISH FCTX_TRY - QMINFETCH #######\n");
 			return;
 		}
 
@@ -4406,6 +4423,7 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 			UNLOCK(&res->buckets[bucketnum].lock);
 			fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
 		}
+		// printf("####### FINISH FCTX_TRY - OPTIONS #######\n");
 		return;
 	}
 
@@ -4416,6 +4434,7 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 			      "exceeded max queries resolving '%s'",
 			      fctx->info);
 		fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
+		// printf("####### FINISH FCTX_TRY - isc_counter_increment #######\n");
 		return;
 	}
 
@@ -4433,6 +4452,8 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 	} else if (retrying) {
 		inc_stats(res, dns_resstatscounter_retry);
 	}
+
+	// printf("####### FINISH FCTX_TRY #######\n");
 }
 
 static void
@@ -4577,7 +4598,7 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 		fctx_cancelqueries(fctx, false, false);
 		fctx_cleanupall(fctx);
 	}
-		//printf("@@@@@@@@@@@@@@  Got to 4 fctx_try  @@@@@@@@@@@@@@\n");
+	// printf("@@@@@@@@@@@@@@  Got to 4 fctx_try  @@@@@@@@@@@@@@\n");
 	fctx_try(fctx, true, false);
 
 cleanup:
@@ -4756,7 +4777,7 @@ fctx_timeout(isc_task_t *task, isc_event_t *event) {
 			fctx_done(fctx, result, __LINE__);
 		} else {
 			/* Keep trying */
-				//printf("@@@@@@@@@@@@@@  Got to 5 fctx_try  @@@@@@@@@@@@@@\n");
+			// printf("@@@@@@@@@@@@@@  Got to 5 fctx_try  @@@@@@@@@@@@@@\n");
 			fctx_try(fctx, true, false);
 		}
 	}
@@ -5003,7 +5024,7 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 			fctx_done(fctx, result, __LINE__);
 		} else {
 
-			//printf("@@@@@@@@@@@@@@  Got to 6 fctx_try  @@@@@@@@@@@@@@\n");
+			// printf("@@@@@@@@@@@@@@  Got to 6 fctx_try  @@@@@@@@@@@@@@\n");
 			fctx_try(fctx, false, false);
 		}
 	} else if (dodestroy) {
@@ -5921,7 +5942,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 			}
 			fctx_done(fctx, result, __LINE__); /* Locks bucket. */
 		} else {
-				//printf("@@@@@@@@@@@@@@  Got to 7 fctx_try  @@@@@@@@@@@@@@\n");
+			// printf("@@@@@@@@@@@@@@  Got to 7 fctx_try  @@@@@@@@@@@@@@\n");
 			fctx_try(fctx, true, true); /* Locks bucket. */
 		}
 
@@ -7647,7 +7668,7 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 		/*
 		 * Try again.
 		 */
-			//printf("@@@@@@@@@@@@@@  Got to 8 fctx_try  @@@@@@@@@@@@@@\n");
+		// printf("@@@@@@@@@@@@@@  Got to 8 fctx_try  @@@@@@@@@@@@@@\n");
 		fctx_try(fctx, true, false);
 	} else {
 		unsigned int n;
@@ -9944,7 +9965,7 @@ rctx_nextserver(respctx_t *rctx, dns_message_t *message,
 	/*
 	 * Try again.
 	 */
-	//printf("@@@@@@@@@@@@@@  Got to 9 fctx_try  @@@@@@@@@@@@@@\n");
+	// printf("@@@@@@@@@@@@@@  Got to 9 fctx_try  @@@@@@@@@@@@@@\n");
 	fctx_try(fctx, !rctx->get_nameservers, false);
 }
 
