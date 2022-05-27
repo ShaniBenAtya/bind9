@@ -914,7 +914,12 @@ create_managers(void) {
 		return (ISC_R_UNEXPECTED);
 	}
 
-	result = isc_taskmgr_create(named_g_mctx, named_g_cpus, 0, named_g_nm,
+	// SHANI: CHANGE number of CPUs
+	// result = isc_taskmgr_create(named_g_mctx, 4, 0, named_g_nm,
+	// 			    &named_g_taskmgr);
+	// result = isc_taskmgr_create(named_g_mctx, named_g_cpus, 0, named_g_nm,
+	// 			    &named_g_taskmgr);
+	result = isc_taskmgr_create(named_g_mctx, 1, 0, named_g_nm,
 				    &named_g_taskmgr);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,

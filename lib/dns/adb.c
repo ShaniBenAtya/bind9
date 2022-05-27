@@ -3030,6 +3030,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	start_at_zone = false;
 	alias = false;
 
+	// printf("				################################Pre-data fetch func################################\n");
+
 	if (now == 0) {
 		isc_stdtime_get(&now);
 	}
@@ -3070,6 +3072,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	if (FIND_WANTEVENT(find)) {
 		REQUIRE(task != NULL);
 	}
+	// printf("		GOT find->options & WANT_EVENT from ADB = %d\n", find->options & DNS_ADBFIND_WANTEVENT);
 
 	if (isc_log_wouldlog(dns_lctx, DEF_LEVEL)) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
@@ -3272,7 +3275,7 @@ fetch:
 			   namebuf, adbname);
 		}
 
-		printf("END IF in FETCH !!!!!!!!!!!!!!!!!!!!!\n");
+		// printf("				END IF in FETCH !!!!!!!!!!!!!!!!!!!!!\n");
 	}
 
 	/*
@@ -3364,6 +3367,8 @@ out:
 	}
 
 	UNLOCK(&adb->namelocks[bucket]);
+
+	// printf("				################################Pre-data fetch func END############################\n");
 
 	return (result);
 }
