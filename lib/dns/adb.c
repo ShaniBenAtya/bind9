@@ -3031,6 +3031,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	start_at_zone = false;
 	alias = false;
 
+	// printf("				################################Pre-data fetch func################################\n");
+
 	if (now == 0) {
 		isc_stdtime_get(&now);
 	}
@@ -3071,6 +3073,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	if (FIND_WANTEVENT(find)) {
 		REQUIRE(task != NULL);
 	}
+	// printf("		GOT find->options & WANT_EVENT from ADB = %d\n", find->options & DNS_ADBFIND_WANTEVENT);
 
 	if (isc_log_wouldlog(dns_lctx, DEF_LEVEL)) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
@@ -3235,18 +3238,18 @@ fetch:
 	} else {
 		have_address = false;
 	}
-	printf("################################Pre-data fetch func################################\n");
-	printf("wanted fetches value (Should not be 0): %d\n", wanted_fetches);
-	printf("FIND_AVOIDFETCHES value: %d\n", FIND_AVOIDFETCHES(find));
-	printf("have_address value: %d\n", have_address);
-	printf("FIND_NOFETCH value(Should not be true): %d\n", FIND_NOFETCH(find));
-	printf("################################END OF pre-data fetch func################################\n");
+	// printf("				################################Pre-data fetch func################################\n");
+	// printf("wanted_fetches value (Should not be 0): %d\n", wanted_fetches);
+	// printf("!(FIND_AVOIDFETCHES(find) && have_address) => !(%d && %d) =  %d\n", FIND_AVOIDFETCHES(find), have_address, !(FIND_AVOIDFETCHES(find) && have_address));
+	// printf("have_address value: %d\n", have_address);
+	// printf("FIND_NOFETCH value(Should not be true): %d\n", FIND_NOFETCH(find));
+	// printf("################################END OF pre-data fetch func################################\n");
 	if (wanted_fetches != 0 && !(FIND_AVOIDFETCHES(find) && have_address) &&
 	    !FIND_NOFETCH(find))
 	{
 
-		printf("INSIDE IF in FETCH !!!!!!!!!!!!!!!!!!!!!\n");
-		printf("Added address to fetch: %s\n", adbname->name.ndata);
+		// printf("				INSIDE IF in FETCH !!!!!!!!!!!!!!!!!!!!!\n");
+		// printf("				Added address to fetch: %s\n", adbname->name.ndata);
 
 		/*
 		 * We're missing at least one address family.  Either the
@@ -3285,7 +3288,7 @@ fetch:
 			   namebuf, adbname);
 		}
 
-		printf("END IF in FETCH !!!!!!!!!!!!!!!!!!!!!\n");
+		// printf("				END IF in FETCH !!!!!!!!!!!!!!!!!!!!!\n");
 	}
 
 	/*
@@ -3377,6 +3380,8 @@ out:
 	}
 
 	UNLOCK(&adb->namelocks[bucket]);
+
+	// printf("				################################Pre-data fetch func END############################\n");
 
 	return (result);
 }
