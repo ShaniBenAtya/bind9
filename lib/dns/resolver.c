@@ -3792,7 +3792,6 @@ normal_nses:
 
 		dns_rdataset_current(&fctx->nameservers, &rdata);
 		// printf("		in loop for: %s : %s\n", fctx->name.ndata, rdata.data);
-		no_infor++;
 		// printf("number of times the for loop happend: %s : %s - %d\n", fctx->name.ndata, rdata.data, no_infor++);
 		// printf("Current data in for: %s\n", rdata.data);
 		/*
